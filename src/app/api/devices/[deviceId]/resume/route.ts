@@ -9,6 +9,10 @@ export async function POST(
 ) {
   const { deviceId } = await params
 
+  if (!deviceId || !/^[a-zA-Z0-9_-]{1,64}$/.test(deviceId)) {
+    return NextResponse.json({ error: 'deviceId invalide' }, { status: 400 })
+  }
+
   try {
     const provider = getProvider()
     await provider.resume(deviceId)

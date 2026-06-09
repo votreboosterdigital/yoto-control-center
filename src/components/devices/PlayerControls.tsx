@@ -41,6 +41,7 @@ export function PlayerControls({ deviceId, currentStatus, currentVolume }: Playe
   }
 
   async function handleVolume(newVolume: number) {
+    const prevVolume = volume
     setVolume(newVolume)
     setLoading('volume')
     try {
@@ -51,19 +52,19 @@ export function PlayerControls({ deviceId, currentStatus, currentVolume }: Playe
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({})) as { error?: string }
+        setVolume(prevVolume)
         toast.error(data.error ?? 'Échec du changement de volume')
         return
       }
       toast.success(`Volume mis à jour : ${newVolume}%`)
     } catch {
-      toast.error('Erreur réseau lors du changement de volume')
+      setVolume(prevVolume)
+      toast.error('Erreur changement volume')
     } finally {
       setLoading(null)
     }
   }
 
-  const isPlaying = currentStatus === 'playing'
-  const isPaused = currentStatus === 'paused'
   const isOffline = currentStatus === 'offline'
 
   return (
@@ -73,10 +74,9 @@ export function PlayerControls({ deviceId, currentStatus, currentVolume }: Playe
         <Button
           variant="outline"
           size="sm"
-          disabled={isOffline || loading !== null}
+          disabled={isOffline || loading !== null || currentStatus !== 'playing'}
           onClick={() => handleAction('pause')}
           aria-label="Pause"
-          className={isPlaying ? '' : 'opacity-40'}
         >
           <Pause className="h-4 w-4" />
         </Button>
@@ -84,10 +84,9 @@ export function PlayerControls({ deviceId, currentStatus, currentVolume }: Playe
         <Button
           variant="outline"
           size="sm"
-          disabled={isOffline || loading !== null}
+          disabled={isOffline || loading !== null || currentStatus !== 'paused'}
           onClick={() => handleAction('resume')}
           aria-label="Reprendre"
-          className={isPaused ? '' : 'opacity-40'}
         >
           <Play className="h-4 w-4" />
         </Button>

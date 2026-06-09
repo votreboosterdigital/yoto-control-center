@@ -4,17 +4,20 @@ import { getProvider } from '@/lib/yoto'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 
-const playSchema = z.object({
-  type: z.enum(['playlist', 'stream']),
-  id: z.string().optional(),
-  url: z.string().optional(),
-})
+const playSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('playlist'), id: z.string().min(1) }),
+  z.object({ type: z.literal('stream'), url: z.string().url() }),
+])
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ deviceId: string }> },
 ) {
   const { deviceId } = await params
+
+  if (!deviceId || !/^[a-zA-Z0-9_-]{1,64}$/.test(deviceId)) {
+    return NextResponse.json({ error: 'deviceId invalide' }, { status: 400 })
+  }
 
   let body: unknown
   try {
@@ -31,32 +34,26 @@ export async function POST(
     )
   }
 
-  const { type, id, url } = parsed.data
-
-  if (type === 'playlist' && !id) {
-    return NextResponse.json({ error: 'id est requis pour le type playlist' }, { status: 400 })
-  }
-  if (type === 'stream' && !url) {
-    return NextResponse.json({ error: 'url est requise pour le type stream' }, { status: 400 })
-  }
+  const data = parsed.data
 
   try {
     const provider = getProvider()
 
-    if (type === 'playlist') {
-      await provider.playPlaylist(deviceId, id!)
+    if (data.type === 'playlist') {
+      await provider.playPlaylist(deviceId, data.id)
     } else {
-      await provider.playStream(deviceId, url!)
+      await provider.playStream(deviceId, data.url)
     }
 
+    const contentId = data.type === 'playlist' ? data.id : data.url
     await prisma.deviceSnapshot.upsert({
       where: { deviceId },
       create: {
         deviceId,
-        data: { playback: { status: 'playing', contentType: type, contentId: id ?? url, updatedAt: new Date().toISOString() } },
+        data: { playback: { status: 'playing', contentType: data.type, contentId, updatedAt: new Date().toISOString() } },
       },
       update: {
-        data: { playback: { status: 'playing', contentType: type, contentId: id ?? url, updatedAt: new Date().toISOString() } },
+        data: { playback: { status: 'playing', contentType: data.type, contentId, updatedAt: new Date().toISOString() } },
       },
     })
 
