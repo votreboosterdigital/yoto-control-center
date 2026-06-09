@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface EventLogEntry {
   id: string
@@ -13,6 +13,7 @@ export interface EventLogEntry {
 export function useEvents(deviceId?: string, intervalMs = 5000) {
   const [events, setEvents] = useState<EventLogEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const intervalMsRef = useRef(intervalMs)
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -31,9 +32,9 @@ export function useEvents(deviceId?: string, intervalMs = 5000) {
     }
 
     fetchEvents()
-    const interval = setInterval(fetchEvents, intervalMs)
+    const interval = setInterval(fetchEvents, intervalMsRef.current)
     return () => clearInterval(interval)
-  }, [deviceId, intervalMs])
+  }, [deviceId])
 
   return { events, loading }
 }

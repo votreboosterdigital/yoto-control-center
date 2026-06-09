@@ -5,7 +5,8 @@ import { logger } from '@/lib/logger'
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200)
+    const parsedLimit = parseInt(searchParams.get('limit') ?? '50', 10)
+    const limit = Math.min(isNaN(parsedLimit) ? 50 : parsedLimit, 200)
     const deviceId = searchParams.get('deviceId') ?? undefined
 
     const events = await prisma.eventLog.findMany({
