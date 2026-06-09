@@ -2,6 +2,7 @@
 
 import { useEvents } from '@/hooks/useEvents'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const EVENT_COLORS: Record<string, string> = {
   'device.connected': 'bg-green-100 text-green-800',
@@ -32,7 +33,11 @@ export function EventFeed({ deviceId, title = 'Événements récents' }: Props) 
         <ScrollArea className="h-64">
           <div className="space-y-1 pr-2">
             {events.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4 text-center">Aucun événement</p>
+              <EmptyState
+                icon="📡"
+                title="Aucun événement"
+                description="Les événements apparaîtront ici en temps réel."
+              />
             ) : (
               events.map((ev) => (
                 <div key={ev.id} className="flex items-center gap-2 text-xs py-1 border-b">

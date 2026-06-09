@@ -1,6 +1,7 @@
 import { getProvider } from '@/lib/yoto'
 import { DeviceCard } from '@/components/devices/DeviceCard'
 import { PlaylistLauncher } from '@/components/devices/PlaylistLauncher'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { logger } from '@/lib/logger'
 import type { Device } from '@/lib/yoto/types'
 
@@ -32,13 +33,16 @@ export default async function DevicesPage() {
           </p>
         </div>
       ) : devices.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">Aucun appareil Yoto trouvé.</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Vérifiez votre connexion ou activez le mode mock via{' '}
-            <code className="text-xs bg-muted px-1 rounded">ENABLE_MOCK_PROVIDER=true</code>.
-          </p>
-        </div>
+        <EmptyState
+          icon="📻"
+          title="Aucun appareil Yoto trouvé"
+          description={
+            <>
+              Vérifiez votre connexion ou activez le mode mock via{' '}
+              <code className="text-xs bg-muted px-1 rounded">ENABLE_MOCK_PROVIDER=true</code>.
+            </>
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {devices.map((device) => (

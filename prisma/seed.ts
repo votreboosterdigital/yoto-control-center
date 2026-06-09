@@ -98,6 +98,41 @@ async function main() {
     console.log('✅ Schedule démo "Routine Dodo 20h30" upserted')
   }
 
+  // --- AudioAssets de démo ---
+  const audioAssets = [
+    {
+      name: 'Message bonjour',
+      url: 'https://example.com/bonjour.mp3',
+      type: 'message',
+      duration: null,
+      tags: '["matin","réveil"]',
+    },
+    {
+      name: 'Bruit blanc',
+      url: 'https://example.com/white-noise.mp3',
+      type: 'music',
+      duration: 3600,
+      tags: '["sommeil","calme"]',
+    },
+    {
+      name: 'Mission intro',
+      url: 'https://example.com/mission.mp3',
+      type: 'sfx',
+      duration: null,
+      tags: '["aventure","mission"]',
+    },
+  ]
+
+  for (const asset of audioAssets) {
+    const id = `asset-${asset.name.toLowerCase().replace(/\s/g, '-')}`
+    await prisma.audioAsset.upsert({
+      where: { id },
+      create: { id, ...asset },
+      update: {},
+    })
+    console.log(`✅ AudioAsset "${asset.name}" upserted`)
+  }
+
   console.log('✅ Seed terminé')
 }
 

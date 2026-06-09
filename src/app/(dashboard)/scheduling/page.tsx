@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { schedulerService } from '@/server/services/SchedulerService'
 import { getProvider } from '@/lib/yoto'
 import { ScheduleActions } from '@/components/scheduling/ScheduleActions'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 async function getSchedules() {
   const schedules = await prisma.schedule.findMany({ orderBy: { createdAt: 'asc' } })
@@ -49,10 +50,15 @@ export default async function SchedulingPage() {
       </div>
 
       {schedules.length === 0 && (
-        <p className="text-muted-foreground mb-6">
-          Aucun schedule configuré. Lance{' '}
-          <code className="text-xs">npx prisma db seed</code> pour créer le schedule de démo.
-        </p>
+        <EmptyState
+          icon="🗓️"
+          title="Aucun planning configuré"
+          description={
+            <>
+              Lance <code className="text-xs bg-muted px-1 rounded">npx prisma db seed</code> pour créer le schedule de démo.
+            </>
+          }
+        />
       )}
 
       <ScheduleActions schedules={schedules} scenarios={scenarios} deviceIds={deviceIds} />

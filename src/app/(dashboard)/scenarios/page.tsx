@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { ScenarioCard } from '@/components/scenarios/ScenarioCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { getProvider } from '@/lib/yoto'
 import type { ScenarioDefinition, ScenarioStep } from '@/lib/scenarios/types'
 
@@ -63,9 +64,15 @@ export default async function ScenariosPage() {
       </div>
 
       {scenarios.length === 0 ? (
-        <p className="text-muted-foreground">
-          Aucun scénario trouvé. Lance <code className="text-xs">npx prisma db seed</code> pour créer les scénarios par défaut.
-        </p>
+        <EmptyState
+          icon="🎭"
+          title="Aucun scénario configuré"
+          description={
+            <>
+              Lance <code className="text-xs bg-muted px-1 rounded">npx prisma db seed</code> pour créer les scénarios par défaut.
+            </>
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {scenarios.map((scenario) => (
