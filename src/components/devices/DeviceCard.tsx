@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PlayerControls } from './PlayerControls'
 import type { Device } from '@/lib/yoto/types'
 
 interface DeviceCardProps {
@@ -18,6 +19,8 @@ export function DeviceCard({ device }: DeviceCardProps) {
   } else if (isPaused) {
     playbackLabel = 'En pause'
   }
+
+  const playbackStatus = device.currentPlayback?.status ?? (device.online ? 'idle' : 'offline')
 
   return (
     <Card>
@@ -50,6 +53,11 @@ export function DeviceCard({ device }: DeviceCardProps) {
         {!playbackLabel && device.online && (
           <p className="text-sm text-muted-foreground">Inactif</p>
         )}
+        <PlayerControls
+          deviceId={device.id}
+          currentStatus={playbackStatus}
+          currentVolume={device.volume}
+        />
       </CardContent>
     </Card>
   )

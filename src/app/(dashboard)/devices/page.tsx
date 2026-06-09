@@ -1,5 +1,6 @@
 import { getProvider } from '@/lib/yoto'
 import { DeviceCard } from '@/components/devices/DeviceCard'
+import { PlaylistLauncher } from '@/components/devices/PlaylistLauncher'
 import { logger } from '@/lib/logger'
 import type { Device } from '@/lib/yoto/types'
 
@@ -41,7 +42,10 @@ export default async function DevicesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {devices.map((device) => (
-            <DeviceCard key={device.id} device={device} />
+            <div key={device.id} className="flex flex-col gap-2">
+              <DeviceCard device={device} />
+              <PlaylistLauncher deviceId={device.id} />
+            </div>
           ))}
         </div>
       )}
