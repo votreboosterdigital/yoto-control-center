@@ -1,8 +1,78 @@
-export default function ScenariosPage() {
+import { prisma } from '@/lib/prisma'
+import { ScenarioCard } from '@/components/scenarios/ScenarioCard'
+import { getProvider } from '@/lib/yoto'
+import type { ScenarioDefinition, ScenarioStep } from '@/lib/scenarios/types'
+
+async function getScenarios(): Promise<ScenarioDefinition[]> {
+  const rows = await prisma.scenario.findMany({
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      description: true,
+      enabled: true,
+      steps: true,
+      trigger: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return rows.map((row) => {
+    const stepsRaw = row.steps
+    const steps: ScenarioStep[] =
+      typeof stepsRaw === 'string'
+        ? (JSON.parse(stepsRaw) as ScenarioStep[])
+        : (stepsRaw as unknown as ScenarioStep[])
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      description: row.description ?? undefined,
+      enabled: row.enabled,
+      steps,
+      trigger: row.trigger
+        ? (typeof row.trigger === 'string'
+            ? JSON.parse(row.trigger)
+            : row.trigger) as ScenarioDefinition['trigger']
+        : undefined,
+    }
+  })
+}
+
+async function getDeviceIds(): Promise<string[]> {
+  try {
+    const provider = getProvider()
+    const devices = await provider.listDevices()
+    return devices.map((d) => d.id)
+  } catch {
+    return []
+  }
+}
+
+export default async function ScenariosPage() {
+  const [scenarios, deviceIds] = await Promise.all([getScenarios(), getDeviceIds()])
+
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Scénarios</h2>
-      <p className="text-muted-foreground">Création et gestion des scénarios d'automatisation.</p>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Scénarios</h2>
+        <span className="text-sm text-muted-foreground">
+          {scenarios.length} scénario{scenarios.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {scenarios.length === 0 ? (
+        <p className="text-muted-foreground">
+          Aucun scénario trouvé. Lance <code className="text-xs">npx prisma db seed</code> pour créer les scénarios par défaut.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {scenarios.map((scenario) => (
+            <ScenarioCard key={scenario.id} scenario={scenario} deviceIds={deviceIds} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
