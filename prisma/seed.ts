@@ -80,7 +80,25 @@ async function main() {
   })
   console.log('✅ Scénario "Routine Dodo" upserted')
 
-  console.log('✅ Seed scénarios terminé')
+  // Schedule démo : routine dodo tous les soirs à 20h30 (Montréal)
+  const routineDodo = await prisma.scenario.findUnique({ where: { slug: 'routine-dodo' } })
+  if (routineDodo) {
+    await prisma.schedule.upsert({
+      where: { id: 'schedule-dodo-demo' },
+      create: {
+        id: 'schedule-dodo-demo',
+        scenarioId: routineDodo.id,
+        cron: '30 20 * * *',
+        timezone: 'America/Montreal',
+        enabled: true,
+        deviceId: 'mock-player-1',
+      },
+      update: {},
+    })
+    console.log('✅ Schedule démo "Routine Dodo 20h30" upserted')
+  }
+
+  console.log('✅ Seed terminé')
 }
 
 main()
