@@ -7,6 +7,18 @@ interface DeviceCardProps {
 }
 
 export function DeviceCard({ device }: DeviceCardProps) {
+  const isPlaying = device.currentPlayback?.status === 'playing'
+  const isPaused = device.currentPlayback?.status === 'paused'
+
+  let playbackLabel: string | null = null
+  if (isPlaying && device.currentPlayback?.trackTitle) {
+    playbackLabel = device.currentPlayback.trackTitle
+  } else if (isPlaying) {
+    playbackLabel = 'En lecture'
+  } else if (isPaused) {
+    playbackLabel = 'En pause'
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -16,10 +28,28 @@ export function DeviceCard({ device }: DeviceCardProps) {
             {device.online ? 'En ligne' : 'Hors ligne'}
           </Badge>
         </div>
+        <p className="text-xs text-muted-foreground capitalize">
+          Yoto {device.type === 'mini' ? 'Mini' : 'Player'}
+        </p>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">Type : {device.type}</p>
-        <p className="text-sm text-muted-foreground">Volume : {device.volume}%</p>
+      <CardContent className="space-y-1">
+        <p className="text-sm text-muted-foreground">
+          Volume : <span className="font-medium text-foreground">{device.volume}%</span>
+        </p>
+        {device.batteryLevel !== undefined && (
+          <p className="text-sm text-muted-foreground">
+            Batterie : <span className="font-medium text-foreground">{device.batteryLevel}%</span>
+          </p>
+        )}
+        {playbackLabel && (
+          <p className="text-sm text-muted-foreground truncate" title={playbackLabel}>
+            {isPlaying ? '▶' : '⏸'}{' '}
+            <span className="font-medium text-foreground">{playbackLabel}</span>
+          </p>
+        )}
+        {!playbackLabel && device.online && (
+          <p className="text-sm text-muted-foreground">Inactif</p>
+        )}
       </CardContent>
     </Card>
   )
