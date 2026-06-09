@@ -1,8 +1,18 @@
+import { EventFeed } from '@/components/events/EventFeed'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 export default function LogsPage() {
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Logs</h2>
-      <p className="text-muted-foreground">Journal des événements et historique d'exécution.</p>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Logs</h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tous les événements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EventFeed title="Historique complet" />
+        </CardContent>
+      </Card>
     </div>
   )
 }
