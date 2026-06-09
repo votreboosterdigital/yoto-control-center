@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Scenario {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  description String?
+  enabled     Boolean        @default(true)
+  steps       Json
+  trigger     Json?
+  runs        ScenarioRun[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("scenarios")
+}
+
+model ScenarioRun {
+  id         String    @id @default(cuid())
+  scenarioId String
+  scenario   Scenario  @relation(fields: [scenarioId], references: [id])
+  deviceId   String
+  status     String    // 'running' | 'completed' | 'failed'
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  error      String?
+  log        Json?
+
+  @@map("scenario_runs")
+}
+
+model Schedule {
+  id         String   @id @default(cuid())
+  scenarioId String
+  cron       String
+  timezone   String   @default("America/Montreal")
+  enabled    Boolean  @default(true)
+  deviceId   String
+  lastRunAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("schedules")
+}
+
+model DeviceSnapshot {
+  id        String   @id @default(cuid())
+  deviceId  String   @unique
+  data      Json
+  updatedAt DateTime @updatedAt
+
+  @@map("device_snapshots")
+}
+
+model EventLog {
+  id        String   @id @default(cuid())
+  type      String
+  deviceId  String?
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@map("event_logs")
+}
+
+model IconMapping {
+  id         String   @id @default(cuid())
+  sourceType String   // 'track' | 'playlist' | 'scenario'
+  sourceId   String
+  iconKey    String
+  mode       String   @default("manual")   // 'manual' | 'auto'
+  previewUrl String?
+  pixelData  String?  // JSON string de la matrice 16x16
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([sourceType, sourceId])
+  @@map("icon_mappings")
+}
+
+model AudioAsset {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String   // 'message' | 'music' | 'story' | 'sfx'
+  duration  Int?     // secondes
+  tags      String   // JSON string array
+  createdAt DateTime @default(now())
+
+  @@map("audio_assets")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
