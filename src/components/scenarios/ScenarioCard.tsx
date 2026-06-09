@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Play } from 'lucide-react'
+import { IconAssigner } from '@/components/icons/IconAssigner'
 import type { ScenarioDefinition } from '@/lib/scenarios/types'
 
 interface ScenarioCardProps {
@@ -85,6 +86,15 @@ export function ScenarioCard({ scenario, deviceIds = [] }: ScenarioCardProps) {
           <Play className="mr-1.5 h-3.5 w-3.5" />
           {running ? 'Exécution...' : 'Exécuter'}
         </Button>
+
+        <div className="pt-1 border-t">
+          <p className="text-xs text-muted-foreground mb-2">Icône</p>
+          <IconAssigner
+            sourceType="scenario"
+            sourceId={scenario.id}
+            title={scenario.name}
+          />
+        </div>
       </CardContent>
     </Card>
   )
