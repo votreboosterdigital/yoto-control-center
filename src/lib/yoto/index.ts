@@ -10,9 +10,14 @@ export function getProvider(): YotoProvider {
   if (process.env.ENABLE_MOCK_PROVIDER === 'true') {
     _provider = new MockYotoProvider()
   } else {
+    if (!process.env.YOTO_REFRESH_TOKEN || !process.env.YOTO_ACCESS_TOKEN) {
+      throw new Error(
+        'YOTO_REFRESH_TOKEN and YOTO_ACCESS_TOKEN are required when ENABLE_MOCK_PROVIDER is not true'
+      )
+    }
     _provider = new RealYotoProvider({
-      refreshToken: process.env.YOTO_REFRESH_TOKEN ?? '',
-      accessToken: process.env.YOTO_ACCESS_TOKEN ?? '',
+      refreshToken: process.env.YOTO_REFRESH_TOKEN,
+      accessToken: process.env.YOTO_ACCESS_TOKEN,
     })
   }
 

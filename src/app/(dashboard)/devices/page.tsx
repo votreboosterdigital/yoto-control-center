@@ -1,24 +1,36 @@
 import { getProvider } from '@/lib/yoto'
 import { DeviceCard } from '@/components/devices/DeviceCard'
+import { logger } from '@/lib/logger'
 import type { Device } from '@/lib/yoto/types'
 
-async function fetchDevices(): Promise<Device[]> {
+async function fetchDevices(): Promise<{ devices: Device[]; error: string | null }> {
   try {
     const provider = getProvider()
-    return await provider.listDevices()
-  } catch {
-    return []
+    const devices = await provider.listDevices()
+    return { devices, error: null }
+  } catch (error) {
+    logger.error({ error }, 'Failed to fetch devices for page')
+    return { devices: [], error: 'Impossible de charger les appareils. Vérifie la configuration.' }
   }
 }
 
 export default async function DevicesPage() {
-  const devices = await fetchDevices()
+  const { devices, error } = await fetchDevices()
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Appareils</h2>
 
-      {devices.length === 0 ? (
+      {error ? (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-8 text-center">
+          <p className="text-destructive font-medium">{error}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Activez le mode mock via{' '}
+            <code className="text-xs bg-muted px-1 rounded">ENABLE_MOCK_PROVIDER=true</code> ou
+            vérifiez vos variables d&apos;environnement.
+          </p>
+        </div>
+      ) : devices.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground">Aucun appareil Yoto trouvé.</p>
           <p className="text-sm text-muted-foreground mt-1">
