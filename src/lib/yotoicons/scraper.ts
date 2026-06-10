@@ -3,7 +3,6 @@ import path from 'path'
 import fs from 'fs/promises'
 
 const BASE_URL = 'https://yotoicons.com'
-const UPLOADS_BASE = `${BASE_URL}/static/uploads`
 const UA = 'Mozilla/5.0 (compatible; YotoControlCenter/1.0; +https://github.com/yoto)'
 
 const MAX_CONCURRENT = 5
@@ -39,13 +38,14 @@ export async function scrapeIconsByTag(tag: string): Promise<YotoIconMeta[]> {
   const seen = new Set<string>()
   const icons: YotoIconMeta[] = []
 
-  // Les liens de téléchargement ont la forme /static/uploads/5960.png
-  $('a[href^="/static/uploads/"]').each((_, el) => {
-    const href = $(el).attr('href') ?? ''
-    const match = /\/static\/uploads\/(\d+)\.png$/i.exec(href)
+  // Les icônes sont dans <div class="icon" onclick="populate_icon_modal('ID', ...)">
+  // avec une <img src="/static/uploads/ID.png"> à l'intérieur
+  $('img[src^="/static/uploads/"]').each((_, el) => {
+    const src = $(el).attr('src') ?? ''
+    const match = /\/static\/uploads\/(\d+)\.png$/i.exec(src)
     if (match?.[1] && !seen.has(match[1])) {
       seen.add(match[1])
-      icons.push({ id: match[1], previewUrl: `${UPLOADS_BASE}/${match[1]}.png` })
+      icons.push({ id: match[1], previewUrl: `${BASE_URL}/static/uploads/${match[1]}.png` })
     }
   })
 
