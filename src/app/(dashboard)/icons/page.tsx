@@ -38,12 +38,18 @@ export default async function IconsPage() {
         <div>
           <h2 className="text-2xl font-bold">Icônes</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Gestion des icônes pixel-art 16×16 pour les cartes Yoto.
+            Étiquettes visuelles pour organiser tes scénarios dans cette app.
           </p>
         </div>
         <span className="text-sm text-muted-foreground">
           {mappings.length} assignation{mappings.length !== 1 ? 's' : ''}
         </span>
+      </div>
+
+      {/* Notice */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 p-4 text-sm text-amber-800 dark:text-amber-200">
+        <strong>Note :</strong> Ces icônes s&apos;affichent uniquement dans cette application web.
+        Elles n&apos;apparaissent <em>pas</em> sur l&apos;écran physique du Yoto — celui-ci affiche l&apos;artwork intégré à chaque carte, géré par l&apos;app Yoto.
       </div>
 
       {/* Assignations existantes */}

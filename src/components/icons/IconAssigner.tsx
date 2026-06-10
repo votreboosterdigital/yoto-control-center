@@ -69,6 +69,16 @@ export function IconAssigner({ sourceType, sourceId, currentIconKey, title }: Pr
     }
   }
 
+  const [tab, setTab] = useState<'gallery' | 'emoji'>('gallery')
+  const [customEmoji, setCustomEmoji] = useState('')
+
+  function handleCustomEmoji() {
+    const emoji = customEmoji.trim()
+    if (!emoji) return
+    void handleAssign(emoji)
+    setCustomEmoji('')
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-3">
@@ -95,18 +105,58 @@ export function IconAssigner({ sourceType, sourceId, currentIconKey, title }: Pr
               onClick={() => void handleSuggest()}
               disabled={suggesting || assigning}
             >
-              {suggesting ? 'Suggestion...' : 'Suggestion auto'}
+              {suggesting ? 'Suggestion...' : 'Auto'}
             </Button>
           )}
         </div>
       </div>
 
       {showGallery && (
-        <div className="border rounded-lg p-3">
-          <IconGallery
-            selectedKey={iconKey}
-            onSelect={(key) => void handleAssign(key)}
-          />
+        <div className="border rounded-lg p-3 space-y-3">
+          <div className="flex gap-1 text-xs">
+            <button
+              onClick={() => setTab('gallery')}
+              className={`px-3 py-1 rounded ${tab === 'gallery' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+            >
+              Bibliothèque
+            </button>
+            <button
+              onClick={() => setTab('emoji')}
+              className={`px-3 py-1 rounded ${tab === 'emoji' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+            >
+              Emoji custom
+            </button>
+          </div>
+
+          {tab === 'gallery' ? (
+            <IconGallery
+              selectedKey={iconKey}
+              onSelect={(key) => void handleAssign(key)}
+            />
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Tape ou colle n&apos;importe quel emoji</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customEmoji}
+                  onChange={(e) => setCustomEmoji(e.target.value)}
+                  placeholder="🎵 🌙 🦁 🚀 …"
+                  className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-2xl focus:outline-none focus:ring-1 focus:ring-ring"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCustomEmoji() }}
+                />
+                <Button size="sm" onClick={handleCustomEmoji} disabled={!customEmoji.trim() || assigning}>
+                  Utiliser
+                </Button>
+              </div>
+              {customEmoji.trim() && (
+                <div className="flex items-center gap-2 mt-1">
+                  <PixelPreview iconKey={customEmoji.trim()} size={40} />
+                  <span className="text-xs text-muted-foreground">Aperçu</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

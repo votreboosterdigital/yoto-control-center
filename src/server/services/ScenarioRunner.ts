@@ -86,6 +86,14 @@ export class ScenarioRunner {
     }
   }
 
+  // Délai minimum entre commandes MQTT — le Yoto Player ignore les commandes
+  // qui arrivent trop rapidement après la précédente (firmware buffer limité).
+  private static readonly INTER_COMMAND_MS = 400
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
   private async executeStep(
     step: ScenarioStep,
     deviceId: string,
@@ -96,6 +104,7 @@ export class ScenarioRunner {
         const volume = step.params['volume']
         if (typeof volume !== 'number') throw new Error('set_volume: params.volume must be a number')
         await provider.setVolume(deviceId, volume)
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
         break
       }
       case 'play_playlist': {
@@ -105,19 +114,23 @@ export class ScenarioRunner {
           throw new Error('play_playlist: un ID de carte est requis (cardId ou playlistId)')
         }
         await provider.playPlaylist(deviceId, playlistId)
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
         break
       }
       case 'play_stream': {
         const streamUrl = step.params['streamUrl']
         if (typeof streamUrl !== 'string') throw new Error('play_stream: params.streamUrl must be a string')
         await provider.playStream(deviceId, streamUrl)
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
         break
       }
       case 'pause':
         await provider.pause(deviceId)
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
         break
       case 'resume':
         await provider.resume(deviceId)
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
         break
       case 'wait': {
         const durationSeconds = step.params['durationSeconds']

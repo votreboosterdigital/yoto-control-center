@@ -19,9 +19,15 @@ const ICON_COLORS: Record<string, string> = {
   sword: '#7F8C8D',
 }
 
+function isEmoji(str: string): boolean {
+  // Détecte si la chaîne est un emoji (codepoint > 0x00FF ou séquence emoji)
+  const firstCP = str.codePointAt(0) ?? 0
+  return firstCP > 0x00FF
+}
+
 export function PixelPreview({ iconKey, size = 64, className }: Props) {
+  const emoji = isEmoji(iconKey)
   const color = ICON_COLORS[iconKey] ?? '#6366F1'
-  const initial = iconKey.charAt(0).toUpperCase()
 
   return (
     <div
@@ -29,20 +35,21 @@ export function PixelPreview({ iconKey, size = 64, className }: Props) {
       style={{
         width: size,
         height: size,
-        backgroundColor: color,
+        backgroundColor: emoji ? 'transparent' : color,
+        border: emoji ? '1px solid #e5e7eb' : undefined,
+        borderRadius: 4,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 4,
-        fontSize: size * 0.45,
-        color: 'white',
+        fontSize: emoji ? size * 0.72 : size * 0.45,
+        color: emoji ? undefined : 'white',
         fontWeight: 'bold',
         fontFamily: 'monospace',
-        imageRendering: 'pixelated',
         flexShrink: 0,
+        lineHeight: 1,
       }}
     >
-      {initial}
+      {emoji ? iconKey : iconKey.charAt(0).toUpperCase()}
     </div>
   )
 }
