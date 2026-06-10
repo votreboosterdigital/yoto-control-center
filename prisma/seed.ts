@@ -44,7 +44,27 @@ const routineDodoSteps: ScenarioStep[] = [
   { id: 'rd-6', type: 'pause', order: 6, params: {} },
 ]
 
+// --- Jouer une carte ---
+// Joue une carte spécifique (ID fourni à l'exécution) puis règle le volume
+const jouerCarteSteps: ScenarioStep[] = [
+  { id: 'jc-1', type: 'play_playlist', order: 1, params: { playlistId: '' } },
+  { id: 'jc-2', type: 'set_volume', order: 2, params: { volume: 80 } },
+]
+
 async function main() {
+  await prisma.scenario.upsert({
+    where: { slug: 'jouer-carte' },
+    create: {
+      slug: 'jouer-carte',
+      name: 'Jouer une carte',
+      description: 'Lance une carte spécifique par son ID puis règle le volume à 80%',
+      enabled: true,
+      steps: JSON.stringify(jouerCarteSteps),
+    },
+    update: { steps: JSON.stringify(jouerCarteSteps) },
+  })
+  console.log('✅ Scénario "Jouer une carte" upserted')
+
   await prisma.scenario.upsert({
     where: { slug: 'super-papa-mode' },
     create: {

@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import type { ScenarioStep } from '@/lib/scenarios/types'
 
 export class ScenarioRunner {
-  async run(scenarioId: string, deviceId: string): Promise<string> {
+  async run(scenarioId: string, deviceId: string, runtimeParams?: Record<string, unknown>): Promise<string> {
     const scenario = await prisma.scenario.findUnique({ where: { id: scenarioId } })
     if (!scenario) throw new Error(`Scenario ${scenarioId} not found`)
     if (!scenario.enabled) throw new Error(`Scenario ${scenarioId} is disabled`)
@@ -34,7 +34,11 @@ export class ScenarioRunner {
     try {
       for (const step of steps) {
         try {
-          await this.executeStep(step, deviceId, provider)
+          // Fusionner params runtime (ex: cardId fourni à l'exécution) avec params de l'étape
+          const mergedStep = runtimeParams
+            ? { ...step, params: { ...step.params, ...runtimeParams } }
+            : step
+          await this.executeStep(mergedStep, deviceId, provider)
           stepLog.push({ step: step.order, type: step.type, status: 'ok' })
 
           await eventBus.emit({
@@ -95,8 +99,11 @@ export class ScenarioRunner {
         break
       }
       case 'play_playlist': {
-        const playlistId = step.params['playlistId']
-        if (typeof playlistId !== 'string') throw new Error('play_playlist: params.playlistId must be a string')
+        // Accepter 'cardId' (runtime UI) ou 'playlistId' (seed/config)
+        const playlistId = step.params['cardId'] ?? step.params['playlistId']
+        if (typeof playlistId !== 'string' || !playlistId) {
+          throw new Error('play_playlist: un ID de carte est requis (cardId ou playlistId)')
+        }
         await provider.playPlaylist(deviceId, playlistId)
         break
       }

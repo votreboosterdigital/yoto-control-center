@@ -7,6 +7,7 @@ type RouteContext = { params: Promise<{ scenarioId: string }> }
 
 const RunSchema = z.object({
   deviceId: z.string().min(1),
+  runtimeParams: z.record(z.unknown()).optional(),
 })
 
 // POST /api/scenarios/[scenarioId]/run
@@ -19,8 +20,8 @@ export async function POST(req: Request, { params }: RouteContext) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { deviceId } = parsed.data
-    const runId = await scenarioRunner.run(scenarioId, deviceId)
+    const { deviceId, runtimeParams } = parsed.data
+    const runId = await scenarioRunner.run(scenarioId, deviceId, runtimeParams)
 
     return NextResponse.json({ runId, status: 'completed' })
   } catch (error) {
