@@ -11,6 +11,7 @@ const navItems = [
   { href: '/scheduling', label: 'Planning', icon: '🕐' },
   { href: '/library', label: 'Bibliothèque', icon: '📚' },
   { href: '/icons', label: 'Icônes', icon: '🎨' },
+  { href: '/yotoicons', label: 'yotoicons.com', icon: '🖼' },
   { href: '/logs', label: 'Logs', icon: '📋' },
 ]
 
