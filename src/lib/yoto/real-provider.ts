@@ -95,79 +95,34 @@ export class RealYotoProvider implements YotoProvider {
     if (volume < 0 || volume > 100) {
       throw new Error(`Volume invalide : ${volume}. Doit être entre 0 et 100.`)
     }
-
-    const model = this.deviceModels.get(deviceId)
-    if (model) {
-      // YotoDeviceModel.setVolume attend 0-16 (hardware scale)
-      // TODO: vérifier avec device réel — le client convertit-il 0-100 → 0-16 ?
-      // D'après la doc : YotoMqttClient.setVolume attend 0-100
-      // YotoDeviceModel.setVolume attend 0-16
-      // On convertit manuellement : hardware = Math.round(volume * 16 / 100)
-      const hardwareVolume = Math.round(volume * 16 / 100)
-      await model.setVolume(hardwareVolume)
-      return
-    }
-
-    // Fallback : commande via REST
-    await this.client.sendDeviceCommand({
-      deviceId,
-      command: { volume },
-    })
+    const model = await this.getOrCreateModel(deviceId)
+    const hardwareVolume = Math.round(volume * 16 / 100)
+    logger.info({ deviceId, volume, hardwareVolume, mqttConnected: model.mqttConnected }, 'setVolume MQTT')
+    await model.setVolume(hardwareVolume)
   }
 
   async pause(deviceId: string): Promise<void> {
-    const model = this.deviceModels.get(deviceId)
-    if (model) {
-      await model.pauseCard()
-      return
-    }
-    // Fallback REST — TODO: vérifier que sendDeviceCommand supporte pause
-    // D'après la doc MQTT : topic device/{id}/command/card/pause, payload {}
-    await this.client.sendDeviceCommand({
-      deviceId,
-      command: { card: { action: 'pause' } } as Record<string, unknown>,
-    })
+    const model = await this.getOrCreateModel(deviceId)
+    logger.info({ deviceId, mqttConnected: model.mqttConnected }, 'pause MQTT')
+    await model.pauseCard()
   }
 
   async resume(deviceId: string): Promise<void> {
-    const model = this.deviceModels.get(deviceId)
-    if (model) {
-      await model.resumeCard()
-      return
-    }
-    // TODO: vérifier avec device réel — format exact de la commande REST resume
-    await this.client.sendDeviceCommand({
-      deviceId,
-      command: { card: { action: 'resume' } } as Record<string, unknown>,
-    })
+    const model = await this.getOrCreateModel(deviceId)
+    logger.info({ deviceId, mqttConnected: model.mqttConnected }, 'resume MQTT')
+    await model.resumeCard()
   }
 
   async playPlaylist(deviceId: string, playlistId: string): Promise<void> {
-    const model = this.deviceModels.get(deviceId)
-    if (model) {
-      await model.startCard({ cardId: playlistId })
-      return
-    }
-    // TODO: vérifier avec device réel — format de commande card/start via REST
-    await this.client.sendDeviceCommand({
-      deviceId,
-      command: { card: { action: 'start', cardId: playlistId } } as Record<string, unknown>,
-    })
+    const model = await this.getOrCreateModel(deviceId)
+    logger.info({ deviceId, playlistId, mqttConnected: model.mqttConnected }, 'startCard MQTT')
+    await model.startCard({ cardId: playlistId })
   }
 
   async playStream(deviceId: string, streamUrl: string): Promise<void> {
-    // TODO: vérifier avec device réel — le streaming custom requiert une carte MYO
-    // pointant vers l'URL du serveur. Pas de commande directe "jouer une URL arbitraire".
-    // Pour l'instant : on tente via startCard avec l'URL comme cardId
-    const model = this.deviceModels.get(deviceId)
-    if (model) {
-      await model.startCard({ cardId: streamUrl })
-      return
-    }
-    await this.client.sendDeviceCommand({
-      deviceId,
-      command: { card: { action: 'start', uri: streamUrl } } as Record<string, unknown>,
-    })
+    const model = await this.getOrCreateModel(deviceId)
+    logger.info({ deviceId, streamUrl, mqttConnected: model.mqttConnected }, 'startCard (stream) MQTT')
+    await model.startCard({ cardId: streamUrl })
   }
 
   async subscribeToEvents(
@@ -259,6 +214,26 @@ export class RealYotoProvider implements YotoProvider {
   }
 
   // ─── Helpers privés ─────────────────────────────────────────────────────────
+
+  private async getOrCreateModel(deviceId: string): Promise<YotoDeviceModel> {
+    let model = this.deviceModels.get(deviceId)
+
+    if (!model) {
+      logger.warn({ deviceId, knownDevices: Array.from(this.deviceModels.keys()) }, 'Modèle absent — création à la demande')
+      const { devices } = await this.client.getDevices()
+      const rawDevice = devices.find((d) => d.deviceId === deviceId)
+      if (!rawDevice) throw new Error(`Device introuvable : ${deviceId}`)
+      model = new YotoDeviceModel(this.client, rawDevice, { httpPollIntervalMs: 600_000 })
+      this.deviceModels.set(deviceId, model)
+    }
+
+    if (!model.running) {
+      logger.warn({ deviceId }, 'Modèle non démarré — démarrage MQTT')
+      await model.start()
+    }
+
+    return model
+  }
 
   private _mapDevice(d: {
     deviceId: string
