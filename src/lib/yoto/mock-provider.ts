@@ -143,6 +143,13 @@ export class MockYotoProvider implements YotoProvider {
     st.positionSeconds = 0
   }
 
+  async displayPreview(deviceId: string, uri: string, timeoutSeconds: number, animated = false): Promise<void> {
+    const st = this.state.get(deviceId)
+    if (!st) throw new Error(`Device not found: ${deviceId}`)
+    // Mode mock — log uniquement
+    console.log(`[mock] displayPreview ${deviceId}: ${uri} (${timeoutSeconds}s, animated=${animated})`)
+  }
+
   async subscribeToEvents(
     onEvent: (event: YotoEvent) => void,
   ): Promise<() => Promise<void>> {

@@ -127,6 +127,12 @@ export class RealYotoProvider implements YotoProvider {
     await model.startCard({ cardId: playlistId })
   }
 
+  async displayPreview(deviceId: string, uri: string, timeoutSeconds: number, animated = false): Promise<void> {
+    const model = await this.getOrCreateModel(deviceId)
+    logger.info({ deviceId, uri, timeoutSeconds, animated, mqttConnected: model.mqttConnected }, 'displayPreview MQTT')
+    await model.displayPreview({ uri, timeout: timeoutSeconds, animated })
+  }
+
   async playStream(deviceId: string, streamUrl: string): Promise<void> {
     const model = await this.getOrCreateModel(deviceId)
     logger.info({ deviceId, streamUrl, mqttConnected: model.mqttConnected }, 'startCard (stream) MQTT')

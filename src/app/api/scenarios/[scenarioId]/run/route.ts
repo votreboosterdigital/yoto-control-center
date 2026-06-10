@@ -7,7 +7,7 @@ type RouteContext = { params: Promise<{ scenarioId: string }> }
 
 const RunSchema = z.object({
   deviceId: z.string().min(1),
-  runtimeParams: z.record(z.unknown()).optional(),
+  runtimeParams: z.record(z.string(), z.unknown()).optional(),
 })
 
 // POST /api/scenarios/[scenarioId]/run

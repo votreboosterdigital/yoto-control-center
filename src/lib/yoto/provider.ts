@@ -11,4 +11,5 @@ export interface YotoProvider {
   resume(deviceId: string): Promise<void>
   setVolume(deviceId: string, volume: number): Promise<void>
   subscribeToEvents(onEvent: (event: YotoEvent) => void): Promise<() => Promise<void>>
+  displayPreview(deviceId: string, uri: string, timeoutSeconds: number, animated?: boolean): Promise<void>
 }

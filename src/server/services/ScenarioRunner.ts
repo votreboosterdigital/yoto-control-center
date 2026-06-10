@@ -143,6 +143,16 @@ export class ScenarioRunner {
         logger.info({ deviceId, iconKey }, 'assign_icon (non implémenté en v1)')
         break
       }
+      case 'display_preview': {
+        const uri = step.params['uri']
+        const timeoutSeconds = step.params['timeoutSeconds'] ?? 10
+        const animated = step.params['animated'] ?? false
+        if (typeof uri !== 'string' || !uri) throw new Error('display_preview: params.uri est requis')
+        if (typeof timeoutSeconds !== 'number') throw new Error('display_preview: params.timeoutSeconds doit être un nombre')
+        await provider.displayPreview(deviceId, uri, timeoutSeconds, Boolean(animated))
+        await this.sleep(ScenarioRunner.INTER_COMMAND_MS)
+        break
+      }
       default: {
         const _exhaustive: never = step.type
         logger.warn({ stepType: _exhaustive }, 'Type d\'étape inconnu')

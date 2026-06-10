@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerControls } from './PlayerControls'
@@ -15,6 +16,9 @@ export function DeviceCard({ device }: DeviceCardProps) {
   const isPaused = device.currentPlayback?.status === 'paused'
   const cardId = device.currentPlayback?.contentId
   const [copied, setCopied] = useState(false)
+  const [previewUri, setPreviewUri] = useState('')
+  const [showPreviewInput, setShowPreviewInput] = useState(false)
+  const [previewSending, setPreviewSending] = useState(false)
 
   let playbackLabel: string | null = null
   if (isPlaying && device.currentPlayback?.trackTitle) {
@@ -33,6 +37,30 @@ export function DeviceCard({ device }: DeviceCardProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
+  }
+
+  async function handleDisplayPreview() {
+    const uri = previewUri.trim()
+    if (!uri) return
+    setPreviewSending(true)
+    try {
+      const res = await fetch('/api/devices/display-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId: device.id, uri, timeoutSeconds: 10 }),
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        throw new Error(typeof data.error === 'string' ? data.error : 'Erreur')
+      }
+      toast.success('Image envoyée sur l\'écran Yoto')
+      setPreviewUri('')
+      setShowPreviewInput(false)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setPreviewSending(false)
+    }
   }
 
   return (
@@ -87,6 +115,38 @@ export function DeviceCard({ device }: DeviceCardProps) {
           currentStatus={playbackStatus}
           currentVolume={device.volume}
         />
+
+        {/* Afficher une image sur l'écran physique */}
+        <div className="pt-1">
+          <button
+            onClick={() => setShowPreviewInput((v) => !v)}
+            className="text-xs text-primary hover:underline"
+          >
+            {showPreviewInput ? 'Annuler' : '🖼 Afficher sur l\'écran'}
+          </button>
+          {showPreviewInput && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-muted-foreground">URL d&apos;une image accessible (PNG/GIF, petite résolution)</p>
+              <div className="flex gap-1">
+                <input
+                  type="url"
+                  value={previewUri}
+                  onChange={(e) => setPreviewUri(e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 h-8 text-xs rounded border border-input bg-background px-2 focus:outline-none focus:ring-1 focus:ring-ring"
+                  onKeyDown={(e) => { if (e.key === 'Enter') void handleDisplayPreview() }}
+                />
+                <button
+                  onClick={() => void handleDisplayPreview()}
+                  disabled={!previewUri.trim() || previewSending}
+                  className="px-2 h-8 text-xs rounded bg-primary text-primary-foreground disabled:opacity-50"
+                >
+                  {previewSending ? '…' : 'Envoyer'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

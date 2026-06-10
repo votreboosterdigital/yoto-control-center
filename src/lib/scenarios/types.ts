@@ -6,6 +6,7 @@ export type ScenarioStepType =
   | 'set_volume'
   | 'wait'
   | 'assign_icon'
+  | 'display_preview'
 
 export interface ScenarioStep {
   id: string
