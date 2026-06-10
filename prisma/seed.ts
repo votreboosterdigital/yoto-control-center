@@ -15,29 +15,31 @@ const adapter = new PrismaBetterSqlite3({ url: resolvedPath })
 const prisma = new PrismaClient({ adapter })
 
 // --- Super Papa Mode ---
+// Joue la carte actuellement insérée à volume fort
+// → remplace YOTO_CARD_ID par l'ID trouvé dans /library (ex: "duBs9")
 const superPapaSteps: ScenarioStep[] = [
-  { id: 'spm-1', type: 'set_volume', order: 1, params: { volume: 60 } },
-  { id: 'spm-2', type: 'play_stream', order: 2, params: { streamUrl: 'https://example.com/bonjour.mp3', text: 'Bonjour ma chérie !' } },
-  { id: 'spm-3', type: 'wait', order: 3, params: { durationSeconds: 2 } },
-  { id: 'spm-4', type: 'play_playlist', order: 4, params: { playlistId: 'playlist-matin' } },
+  { id: 'spm-1', type: 'set_volume', order: 1, params: { volume: 80 } },
+  { id: 'spm-2', type: 'resume', order: 2, params: {} },
 ]
 
 // --- Mission Secrète ---
+// Volume max + resume (carte insérée)
 const missionSecreteSteps: ScenarioStep[] = [
-  { id: 'ms-1', type: 'set_volume', order: 1, params: { volume: 70 } },
-  { id: 'ms-2', type: 'play_stream', order: 2, params: { streamUrl: 'https://example.com/mission-intro.mp3', text: 'Agent, ta mission commence...' } },
-  { id: 'ms-3', type: 'wait', order: 3, params: { durationSeconds: 1 } },
-  { id: 'ms-4', type: 'play_playlist', order: 4, params: { playlistId: 'playlist-aventure' } },
-  { id: 'ms-5', type: 'wait', order: 5, params: { durationSeconds: 5 } },
+  { id: 'ms-1', type: 'set_volume', order: 1, params: { volume: 90 } },
+  { id: 'ms-2', type: 'resume', order: 2, params: {} },
+  { id: 'ms-3', type: 'wait', order: 3, params: { durationSeconds: 30 } },
+  { id: 'ms-4', type: 'set_volume', order: 4, params: { volume: 50 } },
 ]
 
 // --- Routine Dodo ---
+// Baisse le volume progressivement pour endormir
 const routineDodoSteps: ScenarioStep[] = [
   { id: 'rd-1', type: 'set_volume', order: 1, params: { volume: 30 } },
-  { id: 'rd-2', type: 'play_playlist', order: 2, params: { playlistId: 'playlist-histoire' } },
-  { id: 'rd-3', type: 'wait', order: 3, params: { durationSeconds: 10 } },
-  { id: 'rd-4', type: 'play_playlist', order: 4, params: { playlistId: 'playlist-bruit-blanc' } },
-  { id: 'rd-5', type: 'assign_icon', order: 5, params: { iconKey: 'moon' } },
+  { id: 'rd-2', type: 'resume', order: 2, params: {} },
+  { id: 'rd-3', type: 'wait', order: 3, params: { durationSeconds: 60 } },
+  { id: 'rd-4', type: 'set_volume', order: 4, params: { volume: 15 } },
+  { id: 'rd-5', type: 'wait', order: 5, params: { durationSeconds: 60 } },
+  { id: 'rd-6', type: 'pause', order: 6, params: {} },
 ]
 
 async function main() {
