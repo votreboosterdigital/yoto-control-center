@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerControls } from './PlayerControls'
@@ -10,6 +13,8 @@ interface DeviceCardProps {
 export function DeviceCard({ device }: DeviceCardProps) {
   const isPlaying = device.currentPlayback?.status === 'playing'
   const isPaused = device.currentPlayback?.status === 'paused'
+  const cardId = device.currentPlayback?.contentId
+  const [copied, setCopied] = useState(false)
 
   let playbackLabel: string | null = null
   if (isPlaying && device.currentPlayback?.trackTitle) {
@@ -21,6 +26,14 @@ export function DeviceCard({ device }: DeviceCardProps) {
   }
 
   const playbackStatus = device.currentPlayback?.status ?? (device.online ? 'idle' : 'offline')
+
+  function handleCopy() {
+    if (!cardId) return
+    void navigator.clipboard.writeText(cardId).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   return (
     <Card>
@@ -53,6 +66,22 @@ export function DeviceCard({ device }: DeviceCardProps) {
         {!playbackLabel && device.online && (
           <p className="text-sm text-muted-foreground">Inactif</p>
         )}
+
+        {cardId && (
+          <div className="flex items-center gap-2 pt-1">
+            <p className="text-xs text-muted-foreground">
+              Carte : <code className="font-mono text-foreground bg-muted px-1 py-0.5 rounded">{cardId}</code>
+            </p>
+            <button
+              onClick={handleCopy}
+              className="text-xs text-primary hover:underline shrink-0"
+              title="Copier l'ID de carte"
+            >
+              {copied ? '✓ Copié' : 'Copier'}
+            </button>
+          </div>
+        )}
+
         <PlayerControls
           deviceId={device.id}
           currentStatus={playbackStatus}

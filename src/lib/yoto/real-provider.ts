@@ -56,7 +56,15 @@ export class RealYotoProvider implements YotoProvider {
   async listDevices(): Promise<Device[]> {
     const { devices } = await this.client.getDevices()
 
-    return devices.map((d) => this._mapDevice(d))
+    return devices.map((d) => {
+      const device = this._mapDevice(d)
+      // Enrichir avec le playback MQTT si le modèle est disponible
+      const model = this.deviceModels.get(d.deviceId)
+      if (model) {
+        device.currentPlayback = this._mapPlaybackFromModel(d.deviceId, model)
+      }
+      return device
+    })
   }
 
   async getDevice(deviceId: string): Promise<Device> {
