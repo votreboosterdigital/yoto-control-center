@@ -44,7 +44,10 @@ async function getScenarios(): Promise<ScenarioDefinition[]> {
 async function getDeviceIds(): Promise<string[]> {
   try {
     const provider = getProvider()
-    const devices = await provider.listDevices()
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 5000)
+    )
+    const devices = await Promise.race([provider.listDevices(), timeout])
     return devices.map((d) => d.id)
   } catch {
     return []

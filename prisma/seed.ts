@@ -15,20 +15,22 @@ const adapter = new PrismaBetterSqlite3({ url: resolvedPath })
 const prisma = new PrismaClient({ adapter })
 
 // --- Super Papa Mode ---
-// Joue la carte actuellement insérée à volume fort
-// → remplace YOTO_CARD_ID par l'ID trouvé dans /library (ex: "duBs9")
+// Coupe → attend 1s → volume max → reprend — effet garanti quel que soit l'état
 const superPapaSteps: ScenarioStep[] = [
-  { id: 'spm-1', type: 'set_volume', order: 1, params: { volume: 80 } },
-  { id: 'spm-2', type: 'resume', order: 2, params: {} },
+  { id: 'spm-1', type: 'pause', order: 1, params: {} },
+  { id: 'spm-2', type: 'wait', order: 2, params: { durationSeconds: 1 } },
+  { id: 'spm-3', type: 'set_volume', order: 3, params: { volume: 95 } },
+  { id: 'spm-4', type: 'resume', order: 4, params: {} },
 ]
 
 // --- Mission Secrète ---
-// Volume max + resume (carte insérée)
+// Coupe → baisse volume à 5% → reprend en sourdine → puis monte fort
 const missionSecreteSteps: ScenarioStep[] = [
-  { id: 'ms-1', type: 'set_volume', order: 1, params: { volume: 90 } },
-  { id: 'ms-2', type: 'resume', order: 2, params: {} },
-  { id: 'ms-3', type: 'wait', order: 3, params: { durationSeconds: 30 } },
-  { id: 'ms-4', type: 'set_volume', order: 4, params: { volume: 50 } },
+  { id: 'ms-1', type: 'pause', order: 1, params: {} },
+  { id: 'ms-2', type: 'set_volume', order: 2, params: { volume: 5 } },
+  { id: 'ms-3', type: 'resume', order: 3, params: {} },
+  { id: 'ms-4', type: 'wait', order: 4, params: { durationSeconds: 3 } },
+  { id: 'ms-5', type: 'set_volume', order: 5, params: { volume: 90 } },
 ]
 
 // --- Routine Dodo ---

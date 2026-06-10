@@ -219,11 +219,11 @@ export class RealYotoProvider implements YotoProvider {
     let model = this.deviceModels.get(deviceId)
 
     if (!model) {
-      logger.warn({ deviceId, knownDevices: Array.from(this.deviceModels.keys()) }, 'Modèle absent — création à la demande')
-      const { devices } = await this.client.getDevices()
-      const rawDevice = devices.find((d) => d.deviceId === deviceId)
-      if (!rawDevice) throw new Error(`Device introuvable : ${deviceId}`)
-      model = new YotoDeviceModel(this.client, rawDevice, { httpPollIntervalMs: 600_000 })
+      logger.warn({ deviceId, knownDevices: Array.from(this.deviceModels.keys()) }, 'Modèle absent — création lazy')
+      // Stub minimal : model.start() fetche les vraies données (name, online...) via HTTP
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const stub = { deviceId, name: '', description: '', online: false } as any
+      model = new YotoDeviceModel(this.client, stub, { httpPollIntervalMs: 600_000 })
       this.deviceModels.set(deviceId, model)
     }
 
