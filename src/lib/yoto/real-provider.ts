@@ -2,6 +2,24 @@ import type { YotoProvider } from './provider'
 import type { Device, PlaybackState, YotoEvent } from './types'
 import { logger } from '@/lib/logger'
 import { YotoClient, YotoDeviceModel, DEFAULT_CLIENT_ID } from 'yoto-nodejs-client'
+import fs from 'fs'
+import path from 'path'
+
+function persistTokens(accessToken: string, refreshToken: string): void {
+  try {
+    const envPath = path.join(process.cwd(), '.env.local')
+    let content = fs.readFileSync(envPath, 'utf8')
+    content = content
+      .replace(/^YOTO_ACCESS_TOKEN=.*/m, `YOTO_ACCESS_TOKEN=${accessToken}`)
+      .replace(/^YOTO_REFRESH_TOKEN=.*/m, `YOTO_REFRESH_TOKEN=${refreshToken}`)
+    fs.writeFileSync(envPath, content, 'utf8')
+    process.env.YOTO_ACCESS_TOKEN = accessToken
+    process.env.YOTO_REFRESH_TOKEN = refreshToken
+    logger.info('Tokens Yoto persistés dans .env.local')
+  } catch (err) {
+    logger.error({ err }, 'Impossible de persister les tokens Yoto')
+  }
+}
 
 interface RealYotoProviderOptions {
   refreshToken: string
@@ -20,16 +38,7 @@ export class RealYotoProvider implements YotoProvider {
       refreshToken,
       accessToken,
       onTokenRefresh: async ({ updatedAccessToken, updatedRefreshToken }) => {
-        // TODO: persister les tokens en DB ou fichier chiffré pour éviter
-        // d'avoir à ré-authentifier au redémarrage du serveur
-        logger.info(
-          { accessTokenLength: updatedAccessToken.length },
-          'Tokens Yoto rafraîchis — à persister',
-        )
-        // En production, écrire dans process.env ou une DB sécurisée :
-        // process.env.YOTO_ACCESS_TOKEN = updatedAccessToken
-        // process.env.YOTO_REFRESH_TOKEN = updatedRefreshToken
-        void updatedRefreshToken // référencé pour éviter unused-var
+        persistTokens(updatedAccessToken, updatedRefreshToken)
       },
       onRefreshError: (error) => {
         logger.warn({ error }, 'Erreur transitoire de refresh token Yoto')
